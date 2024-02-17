@@ -1,5 +1,5 @@
 # simulator-api-docs
-Introduction to simulator-api
+Introduction to simulator-api, tool for simulator development
 ## Get started
 Create our simulator class:
 
@@ -62,10 +62,57 @@ class PlayerAcceptorImpl : PlayerAcceptor {
 }
 ````
 
+Create dagger BindsModule for provide  PlayerAcceptorImpl dependency to simulator-api:
+````kotlin
+@Module
+abstract class BindsModule {
+
+    @Binds
+    @Singleton
+    abstract fun bindPlayerAcceptor(impl: PlayerAcceptorImpl): PlayerAcceptor
+}
+````
+
+Create dagger UserModule for provide User class, UserCreator, UserService dependencies to simulator-api:
+````kotlin
+@Module
+class UserModule {
+
+    @Provides
+    @UserClass
+    fun provideUser(): Class<User> = User::class.java
+
+    @Provides
+    @Singleton
+    fun provideUserCreator(): UserFactory<User> = UserFactoryImpl()
+
+    @Provides
+    @Singleton
+    @Suppress("UNCHECKED_CAST")
+    fun provideSimulatorUserDatabase(userDatabase: UserService<User>): UserService<SimulatorUser> {
+        return userDatabase as UserService<SimulatorUser>
+    }
+}
+````
+
 ### Well done, our sample simulator is ready up to launch
 
 ## Deepening into the simulator api
 
+### Configs
+Configs are deserialized from json to our data class annotated @Config using Jackson
+
+Url for download config fetching from system env, for example, we have configuration SampleConfigurable, we need provide config url in env like this: SAMPLE_CONFIG = "url"
+
+### Dependency Injection
+For dependency injection, simulator-api using dagger, you can read dagger documentation to learn
+
+### Codegen
+For code generation, simulator-api using KSP + KotlinPoet
+
+## Introduce to create sample simulator components
+
+###
 ### Boosters
 Create enum with booster types:
 ````kotlin
@@ -166,6 +213,7 @@ class FactoryModule {
 
 #### Well done, our boosters are ready up to use!
 
+###
 ### Leaderboards
 
 Create LeaderboardConfig:
@@ -216,6 +264,7 @@ class ConfigModule {
 
 #### Well done, our leaderboards are ready up to use!
 
+###
 ### Daily rewards:
 
 Create DailyConfigurable:
@@ -282,6 +331,7 @@ Add providing to ConfigModule for DailyRewards:
 
 #### Well done, our daily rewards are ready up to use!
 
+###
 ### Event
 Create EventType enum:
 ````kotlin
@@ -404,6 +454,7 @@ class EarnEventPointsUseCase @Inject constructor(
 }
 ````
 
+###
 ### Register Commands
 
 Create kotlin file SampleCommand:
@@ -449,6 +500,7 @@ internal fun sudo(
 }
 ````
 
+###
 ### Register Listener
 Create kotlin file SampleListener:
 ````kotlin
@@ -472,6 +524,7 @@ internal fun PlayerInteractEvent.tryOpenChest(
 }
 ````
 
+###
 ### Register Key Listener
 Create sample kotlin file SpawnListener to teleport player to spawn by press on key H:
 ````kotlin
@@ -482,6 +535,7 @@ internal fun spawn(player: Player, spawn: Location) {
 ````
 Explain: spawn is providing by dagger
 
+###
 ### Time schedulers
 Create sample kotlin file RestartConfigure to auto restart our server in 6:00 PM
 ````kotlin
@@ -493,6 +547,7 @@ internal fun restart(restartController: RestartController) {
 
 Explain: restartController is providing by dagger
 
+###
 ### Register Payload Handler
 Create sample kotlin file PayloadConfigure to handle payloads by service and for example give gifts with lootbox keys:
 ````kotlin
@@ -507,7 +562,7 @@ private fun LootboxController.giveGifts(lootboxType: LootboxType) {
     }
 }
 ````
-
+###
 ### Loadable functions
 Create sample kotlin file SampleLoad to run task when simulator is launched:
 ````kotlin
